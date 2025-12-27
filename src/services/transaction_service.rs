@@ -263,6 +263,27 @@ impl TransactionService {
         Ok(transactions)
     }
 
+    /// Count transactions for an account
+    pub async fn count_for_account(
+        pool: &PgPool,
+        api_key_id: Uuid,
+        account_id: Uuid,
+    ) -> Result<i64, sqlx::Error> {
+        let count: (i64,) = sqlx::query_as(
+            r#"
+            SELECT COUNT(*) FROM transactions
+            WHERE api_key_id = $1 
+              AND (source_account_id = $2 OR destination_account_id = $2)
+            "#,
+        )
+        .bind(api_key_id)
+        .bind(account_id)
+        .fetch_one(pool)
+        .await?;
+
+        Ok(count.0)
+    }
+
     /// Mark a transaction as failed
     pub async fn fail_transaction(
         pool: &PgPool,

@@ -88,11 +88,13 @@ pub async fn list_account_transactions(
     )
     .await?;
 
+    let total = TransactionService::count_for_account(&pool, auth.api_key.id, account_id).await?;
+
     let data: Vec<TransactionResponse> = transactions.into_iter().map(|t| t.into()).collect();
 
     Ok(Json(ListResponse {
         data,
-        total: -1, // TODO: implement count query
+        total,
         limit,
         offset,
     }))
